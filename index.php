@@ -4,70 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rifa</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://checkout.bold.co/library/boldPaymentButton.js"></script>
 </head>
 <body>
-    <h1>Selecciona tu número de la rifa</h1>
+    <h1 class="text-2xl font-bold text-center my-4">Selecciona tu número de la rifa</h1>
 
-    <div class="form-container">
+    <div class="container mx-auto">
         <!-- Barra de búsqueda -->
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Busca tu número de la rifa">
-            <button id="searchButton">Buscar</button>
+        <div class="flex justify-center mb-4">
+            <input type="text" id="searchInput" placeholder="Busca tu número de la rifa" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" class="border rounded p-2 mr-2">
+            <button id="searchButton" class="bg-blue-500 text-white px-4 py-2 rounded">Buscar</button>
         </div>
 
         <!-- Input para el correo del cliente -->
-        <div class="customer-info">
-            <label for="customerEmail">Correo electrónico:</label>
-            <input type="email" id="customerEmail" name="customerEmail" placeholder="Ingresa tu correo" required>
+        <div class="flex justify-center mb-4">
+            <label for="customerEmail" class="mr-2">Correo electrónico:</label>
+            <input type="email" id="customerEmail" name="customerEmail" placeholder="Ingresa tu correo" required class="border rounded p-2">
         </div>
-    </div>
 
-    <!-- Grilla de números traídos de la base de datos -->
-    <div class="raffle-grid">
-        <?php include 'raffle_grid.php'; ?>
-    </div>
+        <!-- Input oculto para almacenar los números seleccionados -->
+        <input type="hidden" id="selectedNumbers" name="selectedNumbers">
 
-    <!-- Botón de compra -->
-    <div class="purchase-container">
-        <button type="button" id="custom-button-payment">Comprar por $0</button>
+        <!-- Grilla de números traídos de la base de datos -->
+        <div id="raffleGrid">
+            <?php include 'raffle_grid.php'; ?>
+        </div>
+
+        <!-- Botón de compra -->
+        <div class="flex justify-center mt-4">
+            <button type="button" id="custom-button-payment" class="bg-green-500 text-white px-6 py-2 rounded">Comprar por $0</button>
+        </div>
     </div>
 
     <script>
         $(document).ready(function() {
-            var selectedNumbers = [];
+            var selectedNumbers = JSON.parse(localStorage.getItem('selectedNumbers')) || [];
             var pricePerNumber = 20000; // Precio fijo por cada número
 
-            // Selección de números
-            $('.raffle-number.available').click(function() {
-                var numberId = $(this).text().trim();
+            // Actualizar la interfaz según los números seleccionados
+            selectedNumbers.forEach(function(num) {
+                var element = $('.raffle-number[data-numero="' + num + '"]');
+                element.addClass('border-4 border-blue-500');
+            });
 
-                if ($(this).hasClass('selected')) {
-                    $(this).removeClass('selected');
+            updateTotalPrice();
+
+            // Selección de números
+            $('.raffle-number').click(function() {
+                if ($(this).hasClass('cursor-not-allowed')) {
+                    // No hacer nada si el número está reservado
+                    return;
+                }
+
+                var numberId = $(this).data('numero').toString();
+
+                if ($(this).hasClass('border-4 border-blue-500')) {
+                    $(this).removeClass('border-4 border-blue-500');
                     selectedNumbers = selectedNumbers.filter(num => num !== numberId);
                 } else {
-                    $(this).addClass('selected');
+                    $(this).addClass('border-4 border-blue-500');
                     selectedNumbers.push(numberId);
                 }
 
+                localStorage.setItem('selectedNumbers', JSON.stringify(selectedNumbers));
                 $('#selectedNumbers').val(selectedNumbers.join(','));
-                var totalPrice = selectedNumbers.length * pricePerNumber;
-                $('#custom-button-payment').text('Comprar por $' + totalPrice);
+
+                updateTotalPrice();
             });
+
+            function updateTotalPrice() {
+                var totalPrice = selectedNumbers.length * pricePerNumber;
+                $('#custom-button-payment').text('Comprar por $' + totalPrice.toLocaleString());
+            }
 
             // Procesar búsqueda
             $('#searchButton').click(function() {
                 var searchValue = $('#searchInput').val().trim();
-                $('.raffle-number').each(function() {
-                    var number = $(this).text().trim();
-                    if (number.includes(searchValue)) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
+                window.location.href = '?search=' + encodeURIComponent(searchValue);
             });
 
             // Procesar pago al hacer clic en el botón de pago
@@ -86,8 +101,8 @@
                 const checkout = new BoldCheckout({
                     orderId: orderId,
                     currency: 'COP',
-                    amount: (selectedNumbers.length * 20000).toString(), // Calcular el total dinámico
-                    apiKey: '1y0D48xaDriWO_CNz7oXUopfkKx5VjiExsdDW0gj2eA',
+                    amount: (selectedNumbers.length * pricePerNumber).toString(), // Calcular el total dinámico
+                    apiKey: '1y0D48xaDriWO_CNz7oXUopfkKx5VjiExsdDW0gj2eA', // Reemplaza con tu clave API real
                     integritySignature: '', // El hash de integridad será generado por el servidor
                     description: 'Compra de boletos de rifa',
                     redirectionUrl: 'https://rifa.sheerit.com.co/confirm_purchase.php?orderId=' + orderId
