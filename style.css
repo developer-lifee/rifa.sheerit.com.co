@@ -33,7 +33,6 @@ h1 {
     background-color: #0056b3;
 }
 
-/* Ajustar el layout para que los botones estén arriba */
 .form-container {
     display: flex;
     justify-content: space-between;
@@ -102,23 +101,6 @@ button:hover {
         grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     }
 
-    button {
-        padding: 8px 16px;
-        font-size: 14px;
-    }
-
-    #searchInput {
-        width: 100%;
-        padding: 8px;
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 600px) {
-    .raffle-grid {
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    }
-    
     button {
         padding: 8px 16px;
         font-size: 14px;
