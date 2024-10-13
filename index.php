@@ -11,17 +11,11 @@
 <body>
     <h1>Selecciona tu número de la rifa</h1>
 
-    <!-- Barra de búsqueda -->
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Busca tu número de la rifa">
-        <button id="searchButton">Buscar</button>
-    </div>
-
-    <!-- Formulario para procesar la compra -->
-    <form id="raffleForm" method="POST" action="request_payment.php">
-        <!-- Grilla de números traídos de la base de datos -->
-        <div class="raffle-grid">
-            <?php include 'raffle_grid.php'; ?>
+    <div class="form-container">
+        <!-- Barra de búsqueda -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Busca tu número de la rifa">
+            <button id="searchButton">Buscar</button>
         </div>
 
         <!-- Input para el correo del cliente -->
@@ -29,14 +23,17 @@
             <label for="customerEmail">Correo electrónico:</label>
             <input type="email" id="customerEmail" name="customerEmail" placeholder="Ingresa tu correo" required>
         </div>
+    </div>
 
-        <!-- Input oculto para almacenar los números seleccionados -->
-        <input type="hidden" id="selectedNumbers" name="selectedNumbers">
-        <input type="hidden" id="userId" name="userId" value="123">
+    <!-- Grilla de números traídos de la base de datos -->
+    <div class="raffle-grid">
+        <?php include 'raffle_grid.php'; ?>
+    </div>
 
-        <!-- Botón de compra -->
+    <!-- Botón de compra -->
+    <div class="purchase-container">
         <button type="button" id="custom-button-payment">Comprar por $0</button>
-    </form>
+    </div>
 
     <script>
         $(document).ready(function() {
@@ -58,6 +55,19 @@
                 $('#selectedNumbers').val(selectedNumbers.join(','));
                 var totalPrice = selectedNumbers.length * pricePerNumber;
                 $('#custom-button-payment').text('Comprar por $' + totalPrice);
+            });
+
+            // Procesar búsqueda
+            $('#searchButton').click(function() {
+                var searchValue = $('#searchInput').val().trim();
+                $('.raffle-number').each(function() {
+                    var number = $(this).text().trim();
+                    if (number.includes(searchValue)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
             });
 
             // Procesar pago al hacer clic en el botón de pago
