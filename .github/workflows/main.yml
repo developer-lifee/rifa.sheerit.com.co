@@ -10,6 +10,23 @@ jobs:
     steps:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
+
+      - name: 📦 Install dependencies and build frontend
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: 🗂️ Prepare files for deployment
+        run: |
+          # Crear una carpeta temporal para los archivos a desplegar
+          mkdir deployment
+          # Copiar el build del frontend
+          cp -r frontend/build/* deployment/
+          # Copiar el backend
+          cp -r backend/* deployment/
+          # Puedes ajustar los paths según tu estructura
+
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -17,3 +34,5 @@ jobs:
           username: estavi0
           password: ${{ secrets.FTP_PASSWORD }} 
           server-dir: /rifa.sheerit.com.co/
+          local-dir: deployment
+
