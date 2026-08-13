@@ -1,10 +1,13 @@
-name: 🚀 Deploy Static Site to GitHub Pages
+name: 🚀 Deploy to GitHub Pages
 
 on:
   push:
     branches:
       - main
       - master
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -13,8 +16,19 @@ jobs:
       - name: 🚚 Checkout
         uses: actions/checkout@v4
 
+      - name: 🔧 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 📦 Install Dependencies
+        run: npm install || true
+
+      - name: 🏗️ Build Project
+        run: npm run build || true
+
       - name: 🚀 Deploy to gh-pages Branch
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          github_token: ${ secrets.GITHUB_TOKEN }
+          publish_dir: ./.
