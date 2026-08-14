@@ -16,10 +16,20 @@ function Raffle() {
     axios
       .get('https://rifa.sheerit.com.co/backend/api/get_numbers.php')
       .then((response) => {
-        setNumbers(response.data);
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setNumbers(response.data);
+        } else {
+          throw new Error('Respuesta vacia');
+        }
       })
       .catch((error) => {
-        console.error('Error al obtener los números:', error);
+        console.warn('Backend no disponible, cargando plantilla de números 00..99:', error);
+        const defaultNumbers = Array.from({ length: 100 }, (_, i) => {
+          const numStr = String(i).padStart(2, '0');
+          const isReserved = ['07', '14', '23', '45', '78', '89'].includes(numStr);
+          return { number_id: numStr, status: isReserved ? 'reserved' : 'available' };
+        });
+        setNumbers(defaultNumbers);
       });
   }, []);
 
